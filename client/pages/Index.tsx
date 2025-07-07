@@ -26,6 +26,7 @@ import {
   X,
   Maximize2,
   Minimize2,
+  CalendarDays,
 } from "lucide-react";
 import Header from "../components/Header";
 import { useState, useRef, useEffect } from "react";
@@ -218,7 +219,7 @@ export default function Index() {
 
             {/* Gmail */}
             <a
-              href="/gmail"
+              href="https://gmail.com"
               className="group flex flex-col items-center p-4 bg-white/20 dark:bg-gray-900 backdrop-blur-lg rounded-xl hover:bg-white/30 dark:hover:bg-gray-800 border border-white/30 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:shadow-white/20 dark:hover:shadow-white/10 hover:-translate-y-1"
             >
               <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-lg mb-2">
@@ -261,7 +262,7 @@ export default function Index() {
 
             {/* My Website */}
             <a
-              href="https://solai.com"
+              href="https://www.mercedesestrada.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex flex-col items-center p-4 bg-white/20 dark:bg-gray-900 backdrop-blur-lg rounded-xl hover:bg-white/30 dark:hover:bg-gray-800 border border-white/30 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:shadow-white/20 dark:hover:shadow-white/10 hover:-translate-y-1"
@@ -274,18 +275,7 @@ export default function Index() {
               </h3>
             </a>
 
-            {/* Settings */}
-            <a
-              href="/settings"
-              className="group flex flex-col items-center p-4 bg-white/20 dark:bg-gray-900 backdrop-blur-lg rounded-xl hover:bg-white/30 dark:hover:bg-gray-800 border border-white/30 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:shadow-white/20 dark:hover:shadow-white/10 hover:-translate-y-1"
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-gray-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-lg mb-2">
-                <Settings className="w-6 h-6 text-white group-hover:rotate-90 transition-transform duration-300" />
-              </div>
-              <h3 className="text-sm font-semibold text-center text-white">
-                Settings
-              </h3>
-            </a>
+            
 
             {/* Facebook */}
             <a
@@ -329,6 +319,20 @@ export default function Index() {
               </div>
               <h3 className="text-sm font-semibold text-center text-white">
                 Google Drive
+              </h3>
+            </a>
+            {/* Google Calendar */}
+            <a
+              href="https://calendar.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col items-center p-4 bg-white/20 dark:bg-gray-900 backdrop-blur-lg rounded-xl hover:bg-white/30 dark:hover:bg-gray-800 border border-white/30 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:shadow-white/20 dark:hover:shadow-white/10 hover:-translate-y-1"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-700 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-lg mb-2">
+              <CalendarDays className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-sm font-semibold text-center text-white">
+              Google Calendar
               </h3>
             </a>
           </div>
