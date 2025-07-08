@@ -88,7 +88,7 @@ export default function Index() {
     });
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputMessage.trim()) {
       const newMessage = {
         id: messages.length + 1,
@@ -104,21 +104,43 @@ export default function Index() {
       setTimeout(() => {
         chatSectionRef.current?.scrollIntoView({
           behavior: "smooth",
-          block: "center",
+          block: "end",
         });
         scrollToBottom();
       }, 100);
 
       // Simulate AI response
-      setTimeout(() => {
-        const aiResponse = {
-          id: messages.length + 2,
-          type: "bot" as const,
-          content:
-            "I understand. Let me help you with that. I'll analyze your request and provide you with the best solution for your business needs.",
-          timestamp: "Just now",
-        };
-        setMessages((prev) => [...prev, aiResponse]);
+      setTimeout(async () => {
+        try {
+          const res = await fetch("https://solaiservicesdemo.app.n8n.cloud/webhook/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: newMessage.content }),
+          });
+
+          const data = await res.json();
+
+          const aiResponse = {
+            id: newMessage.id + 1,
+            type: "bot" as const,
+            content: data.reply || "No response from assistant.",
+            timestamp: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          };
+
+          setMessages((prev) => [...prev, aiResponse]);
+        } catch (error) {
+          const aiResponse = {
+            id: newMessage.id + 1,
+            type: "bot" as const,
+            content:
+              "I understand. Let me help you with that. I'll analyze your request and provide you with the best solution for your business needs.",
+            timestamp: "Just now",
+          };
+          setMessages((prev) => [...prev, aiResponse]);
+        }
         // Scroll chat to bottom after AI response
         setTimeout(scrollToBottom, 100);
       }, 1500);
