@@ -150,6 +150,45 @@ export default function AiChat() {
     }
   };
 
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  function handleSpeechToText(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      alert("Speech recognition is not supported in this browser.");
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!recognitionRef.current) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = "en-US";
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setMessage((prev) => prev ? prev + " " + transcript : transcript);
+        setIsRecording(false);
+      };
+
+      recognitionRef.current.onerror = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
+    }
+
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      recognitionRef.current.start();
+      setIsRecording(true);
+    }
+  }
   return (
     <div
       className="min-h-screen bg-gradient-to-b from-blue-500 via-blue-300 to-blue-900 dark:from-black dark:via-gray-900 dark:to-black"
@@ -334,7 +373,19 @@ export default function AiChat() {
                   disabled={isVoiceMode}
                 />
               </div>
-
+              <button
+                onClick={handleSpeechToText}
+                className={`p-2 transition-colors ${
+                  isRecording
+                    ? "text-red-400 hover:text-red-300 animate-pulse"
+                    : "text-white/70 hover:text-white"
+                }`}
+                title={
+                  isRecording ? "Stop recording" : "Start speech-to-text"
+                }
+              >
+                <Mic className="w-5 h-5" />
+              </button>
               {/* File Upload Button */}
               <button
                 onClick={triggerFileUpload}
