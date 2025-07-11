@@ -14,37 +14,66 @@ import {
 import { useState, useRef, useEffect } from "react";
 import Header from "../components/Header";
 
+// Generate UUID v4
+const generateUUID = () => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for browsers without crypto.randomUUID
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 export default function AiChat() {
   const [message, setMessage] = useState("");
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDark, setIsDark] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: "bot",
-      content:
-        "Hello! I'm your AI Assistant. How can I help you with your business processes today?",
-      timestamp: "9:30 AM",
-    },
-    {
-      id: 2,
-      type: "user",
-      content:
-        "I need help setting up an automated email campaign for our new product launch.",
-      timestamp: "9:32 AM",
-    },
-    {
-      id: 3,
-      type: "bot",
-      content:
-        "I'd be happy to help you set up an automated email campaign! Let me guide you through the process. First, could you tell me about your target audience and the key messaging you want to include?",
-      timestamp: "9:32 AM",
-    },
-  ]);
+  // Initialize messages from localStorage or use default
+  const getInitialMessages = () => {
+    const savedMessages = localStorage.getItem("solai-chat-messages");
+    if (savedMessages) {
+      try {
+        return JSON.parse(savedMessages);
+      } catch (error) {
+        console.error("Error parsing saved messages:", error);
+      }
+    }
+    // Default messages if none saved
+    return [
+      {
+        id: 1,
+        type: "bot",
+        content:
+          "Hello! I'm your AI Assistant. How can I help you with your business processes today?",
+        timestamp: "9:30 AM",
+      },
+      {
+        id: 2,
+        type: "user",
+        content:
+          "I need help setting up an automated email campaign for our new product launch.",
+        timestamp: "9:32 AM",
+      },
+      {
+        id: 3,
+        type: "bot",
+        content:
+          "I'd be happy to help you set up an automated email campaign! Let me guide you through the process. First, could you tell me about your target audience and the key messaging you want to include?",
+        timestamp: "9:32 AM",
+      },
+    ];
+  };
+
+  const [messages, setMessages] = useState(getInitialMessages);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -70,6 +99,92 @@ export default function AiChat() {
 
     return () => observer.disconnect();
   }, []);
+
+  // Session management
+  useEffect(() => {
+    // Check if this is a page refresh/fresh load
+    const isPageRefresh = !sessionStorage.getItem("solai-navigation-flag");
+
+    if (isPageRefresh) {
+      // Clear existing session and messages on page refresh
+      localStorage.removeItem("solai-chat-session");
+      localStorage.removeItem("solai-chat-messages");
+
+      // Reset messages to default
+      const defaultMessages = getInitialMessages();
+      setMessages(defaultMessages);
+    }
+
+    // Set navigation flag for future page loads
+    sessionStorage.setItem("solai-navigation-flag", "true");
+
+    // Initialize or get existing session
+    const initializeSession = () => {
+      let existingSessionId = localStorage.getItem("solai-chat-session");
+      if (!existingSessionId) {
+        existingSessionId = generateUUID();
+        localStorage.setItem("solai-chat-session", existingSessionId);
+      }
+      setSessionId(existingSessionId);
+    };
+
+    initializeSession();
+
+    // Reset activity timeout
+    const resetActivityTimeout = () => {
+      if (activityTimeoutRef.current) {
+        clearTimeout(activityTimeoutRef.current);
+      }
+
+      // Clear session after 30 minutes of inactivity
+      activityTimeoutRef.current = setTimeout(
+        () => {
+          localStorage.removeItem("solai-chat-session");
+          localStorage.removeItem("solai-chat-messages");
+          const newSessionId = generateUUID();
+          setSessionId(newSessionId);
+          localStorage.setItem("solai-chat-session", newSessionId);
+          // Reset to default messages
+          const defaultMessages = getInitialMessages();
+          setMessages(defaultMessages);
+        },
+        30 * 60 * 1000,
+      ); // 30 minutes
+    };
+
+    // Set up activity listeners
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+    ];
+    const resetTimeout = () => resetActivityTimeout();
+
+    events.forEach((event) => {
+      document.addEventListener(event, resetTimeout, true);
+    });
+
+    resetActivityTimeout();
+
+    // Cleanup on page unload
+    const handleBeforeUnload = () => {
+      localStorage.removeItem("solai-chat-session");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      events.forEach((event) => {
+        document.removeEventListener(event, resetTimeout, true);
+      });
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (activityTimeoutRef.current) {
+        clearTimeout(activityTimeoutRef.current);
+      }
+    };
+  }, [sessionId]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -99,20 +214,40 @@ export default function AiChat() {
           minute: "2-digit",
         }),
       };
-  
-      setMessages((prev) => [...prev, newMessage]);
+
+      setMessages((prev) => {
+        const newMessages = [...prev, newMessage];
+        localStorage.setItem(
+          "solai-chat-messages",
+          JSON.stringify(newMessages),
+        );
+        return newMessages;
+      });
       setMessage("");
       setUploadedFiles([]);
-  
+
       try {
-        const res = await fetch("https://solaiservicesdemo.app.n8n.cloud/webhook/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: newMessage.content }),
-        });
-  
+        const res = await fetch(
+          "https://solaiservicesdemo.app.n8n.cloud/webhook/chat",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              message: newMessage.content,
+              sessionId: sessionId,
+            }),
+          },
+        );
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
         const data = await res.json();
-  
+
         const aiResponse = {
           id: newMessage.id + 1,
           type: "bot" as const,
@@ -122,26 +257,50 @@ export default function AiChat() {
             minute: "2-digit",
           }),
         };
-  
-        setMessages((prev) => [...prev, aiResponse]);
+
+        setMessages((prev) => {
+          const newMessages = [...prev, aiResponse];
+          localStorage.setItem(
+            "solai-chat-messages",
+            JSON.stringify(newMessages),
+          );
+          return newMessages;
+        });
       } catch (err) {
-        console.error(err);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: newMessage.id + 1,
-            type: "bot" as const,
-            content: "Error contacting assistant.",
-            timestamp: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          },
-        ]);
+        console.error("Webhook fetch error:", err);
+
+        let errorMessage =
+          "Sorry, I'm having trouble connecting to the AI service right now. Please try again in a moment.";
+
+        if (err instanceof TypeError && err.message === "Failed to fetch") {
+          errorMessage =
+            "Unable to connect to the AI service. Please check your internet connection and try again.";
+        } else if (err instanceof Error) {
+          errorMessage = `AI service error: ${err.message}`;
+        }
+
+        setMessages((prev) => {
+          const newMessages = [
+            ...prev,
+            {
+              id: newMessage.id + 1,
+              type: "bot" as const,
+              content: errorMessage,
+              timestamp: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+            },
+          ];
+          localStorage.setItem(
+            "solai-chat-messages",
+            JSON.stringify(newMessages),
+          );
+          return newMessages;
+        });
       }
     }
   };
-  
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -153,13 +312,19 @@ export default function AiChat() {
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
 
-  function handleSpeechToText(event: React.MouseEvent<HTMLButtonElement, MouseEvent>): void {
-    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+  function handleSpeechToText(
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ): void {
+    if (
+      !("webkitSpeechRecognition" in window || "SpeechRecognition" in window)
+    ) {
       alert("Speech recognition is not supported in this browser.");
       return;
     }
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
     if (!recognitionRef.current) {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
@@ -168,7 +333,7 @@ export default function AiChat() {
 
       recognitionRef.current.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        setMessage((prev) => prev ? prev + " " + transcript : transcript);
+        setMessage((prev) => (prev ? prev + " " + transcript : transcript));
         setIsRecording(false);
       };
 
@@ -380,9 +545,7 @@ export default function AiChat() {
                     ? "text-red-400 hover:text-red-300 animate-pulse"
                     : "text-white/70 hover:text-white"
                 }`}
-                title={
-                  isRecording ? "Stop recording" : "Start speech-to-text"
-                }
+                title={isRecording ? "Stop recording" : "Start speech-to-text"}
               >
                 <Mic className="w-5 h-5" />
               </button>

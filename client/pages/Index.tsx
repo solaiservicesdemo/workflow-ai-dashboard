@@ -32,34 +32,64 @@ import Header from "../components/Header";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+// Generate UUID v4
+const generateUUID = () => {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for browsers without crypto.randomUUID
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 export default function Index() {
   const [inputMessage, setInputMessage] = useState("");
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("");
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: "bot" as const,
-      content:
-        "Hello! I'm your AI Assistant. How can I help you with your business processes today?",
-      timestamp: "Just now",
-    },
-    {
-      id: 2,
-      type: "user" as const,
-      content: "I need help setting up an automated workflow for our business.",
-      timestamp: "2 mins ago",
-    },
-    {
-      id: 3,
-      type: "bot" as const,
-      content:
-        "I'd be happy to help you set up an automated workflow! What type of business process are you looking to automate? For example, email campaigns, task management, or data processing?",
-      timestamp: "1 min ago",
-    },
-  ]);
+  const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Initialize messages from localStorage or use default
+  const getInitialMessages = () => {
+    const savedMessages = localStorage.getItem("solai-chat-messages");
+    if (savedMessages) {
+      try {
+        return JSON.parse(savedMessages);
+      } catch (error) {
+        console.error("Error parsing saved messages:", error);
+      }
+    }
+    // Default messages if none saved
+    return [
+      {
+        id: 1,
+        type: "bot" as const,
+        content:
+          "Hello! I'm your AI Assistant. How can I help you with your business processes today?",
+        timestamp: "Just now",
+      },
+      {
+        id: 2,
+        type: "user" as const,
+        content:
+          "I need help setting up an automated workflow for our business.",
+        timestamp: "2 mins ago",
+      },
+      {
+        id: 3,
+        type: "bot" as const,
+        content:
+          "I'd be happy to help you set up an automated workflow! What type of business process are you looking to automate? For example, email campaigns, task management, or data processing?",
+        timestamp: "1 min ago",
+      },
+    ];
+  };
+
+  const [messages, setMessages] = useState(getInitialMessages);
 
   const chatSectionRef = useRef<HTMLElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -81,6 +111,98 @@ export default function Index() {
     return () => observer.disconnect();
   }, []);
 
+  // Session management
+  useEffect(() => {
+    // Check if this is a page refresh/fresh load
+    const isPageRefresh = !sessionStorage.getItem("solai-navigation-flag");
+
+    if (isPageRefresh) {
+      // Clear existing session and messages on page refresh
+      localStorage.removeItem("solai-chat-session");
+      localStorage.removeItem("solai-chat-messages");
+
+      // Reset messages to default
+      const defaultMessages = getInitialMessages();
+      setMessages(defaultMessages);
+    }
+
+    // Set navigation flag for future page loads
+    sessionStorage.setItem("solai-navigation-flag", "true");
+
+    // Initialize or get existing session
+    const initializeSession = () => {
+      let existingSessionId = localStorage.getItem("solai-chat-session");
+      if (!existingSessionId) {
+        existingSessionId = generateUUID();
+        localStorage.setItem("solai-chat-session", existingSessionId);
+      }
+      setSessionId(existingSessionId);
+    };
+
+    initializeSession();
+
+    // Reset activity timeout
+    const resetActivityTimeout = () => {
+      if (activityTimeoutRef.current) {
+        clearTimeout(activityTimeoutRef.current);
+      }
+
+      // Clear session after 30 minutes of inactivity
+      activityTimeoutRef.current = setTimeout(
+        () => {
+          localStorage.removeItem("solai-chat-session");
+          localStorage.removeItem("solai-chat-messages");
+          const newSessionId = generateUUID();
+          setSessionId(newSessionId);
+          localStorage.setItem("solai-chat-session", newSessionId);
+          // Reset to default messages
+          const defaultMessages = getInitialMessages();
+          setMessages(defaultMessages);
+        },
+        30 * 60 * 1000,
+      ); // 30 minutes
+    };
+
+    // Set up activity listeners
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+    ];
+    const resetTimeout = () => resetActivityTimeout();
+
+    events.forEach((event) => {
+      document.addEventListener(event, resetTimeout, true);
+    });
+
+    resetActivityTimeout();
+
+    // Cleanup on page unload
+    const handleBeforeUnload = () => {
+      localStorage.removeItem("solai-chat-session");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      events.forEach((event) => {
+        document.removeEventListener(event, resetTimeout, true);
+      });
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      if (activityTimeoutRef.current) {
+        clearTimeout(activityTimeoutRef.current);
+      }
+    };
+  }, [sessionId]);
+
+  // Function to save messages to localStorage
+  const saveMessages = (newMessages: typeof messages) => {
+    localStorage.setItem("solai-chat-messages", JSON.stringify(newMessages));
+    setMessages(newMessages);
+  };
+
   const scrollToBottom = () => {
     messagesContainerRef.current?.scrollTo({
       top: messagesContainerRef.current.scrollHeight,
@@ -97,26 +219,45 @@ export default function Index() {
         timestamp: "Just now",
       };
 
-      setMessages([...messages, newMessage]);
+      const updatedMessages = [...messages, newMessage];
+      saveMessages(updatedMessages);
       setInputMessage("");
 
       // Scroll to chat section (a bit lower) and chat to bottom
       setTimeout(() => {
-        chatSectionRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "end",
-        });
+        if (chatSectionRef.current) {
+          const offset = 35; // adjust this value as needed for your layout
+          const rect = chatSectionRef.current.getBoundingClientRect();
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+          window.scrollTo({
+        top: rect.top + scrollTop - offset,
+        behavior: "smooth",
+          });
+        }
         scrollToBottom();
       }, 100);
 
       // Simulate AI response
       setTimeout(async () => {
         try {
-          const res = await fetch("https://solaiservicesdemo.app.n8n.cloud/webhook/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: newMessage.content }),
-          });
+          const res = await fetch(
+            "https://solaiservicesdemo.app.n8n.cloud/webhook/chat",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({
+                message: newMessage.content,
+                sessionId: sessionId,
+              }),
+            },
+          );
+
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
 
           const data = await res.json();
 
@@ -130,16 +271,47 @@ export default function Index() {
             }),
           };
 
-          setMessages((prev) => [...prev, aiResponse]);
+          setMessages((prev) => {
+            const newMessages = [...prev, aiResponse];
+            localStorage.setItem(
+              "solai-chat-messages",
+              JSON.stringify(newMessages),
+            );
+            return newMessages;
+          });
         } catch (error) {
+          console.error("Webhook fetch error:", error);
+
+          let errorMessage =
+            "Sorry, I'm having trouble connecting to the AI service right now. Please try again in a moment.";
+
+          if (
+            error instanceof TypeError &&
+            error.message === "Failed to fetch"
+          ) {
+            errorMessage =
+              "Unable to connect to the AI service. Please check your internet connection and try again.";
+          } else if (error instanceof Error) {
+            errorMessage = `AI service error: ${error.message}`;
+          }
+
           const aiResponse = {
             id: newMessage.id + 1,
             type: "bot" as const,
-            content:
-              "I understand. Let me help you with that. I'll analyze your request and provide you with the best solution for your business needs.",
-            timestamp: "Just now",
+            content: errorMessage,
+            timestamp: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
           };
-          setMessages((prev) => [...prev, aiResponse]);
+          setMessages((prev) => {
+            const newMessages = [...prev, aiResponse];
+            localStorage.setItem(
+              "solai-chat-messages",
+              JSON.stringify(newMessages),
+            );
+            return newMessages;
+          });
         }
         // Scroll chat to bottom after AI response
         setTimeout(scrollToBottom, 100);
@@ -297,8 +469,6 @@ export default function Index() {
               </h3>
             </a>
 
-            
-
             {/* Facebook */}
             <a
               href="https://facebook.com"
@@ -351,10 +521,10 @@ export default function Index() {
               className="group flex flex-col items-center p-4 bg-white/20 dark:bg-gray-900 backdrop-blur-lg rounded-xl hover:bg-white/30 dark:hover:bg-gray-800 border border-white/30 dark:border-gray-700 transition-all duration-300 hover:shadow-xl hover:shadow-white/20 dark:hover:shadow-white/10 hover:-translate-y-1"
             >
               <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-700 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-lg mb-2">
-              <CalendarDays className="w-6 h-6 text-white" />
+                <CalendarDays className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-sm font-semibold text-center text-white">
-              Google Calendar
+                Google Calendar
               </h3>
             </a>
           </div>
