@@ -30,6 +30,7 @@ const generateUUID = () => {
 export default function AiChat() {
   const [message, setMessage] = useState("");
   const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [professionalMode, setProfessionalMode] = useState(true);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDark, setIsDark] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
@@ -53,22 +54,8 @@ export default function AiChat() {
         id: 1,
         type: "bot",
         content:
-          "Hello! I'm your AI Assistant. How can I help you with your business processes today?",
+          "Hello! I'm AirWrecka, your AI real estate assistant. I can help you with property searches, lead qualification, market analysis, and more. How can I assist you today?",
         timestamp: "9:30 AM",
-      },
-      {
-        id: 2,
-        type: "user",
-        content:
-          "I need help setting up an automated email campaign for our new product launch.",
-        timestamp: "9:32 AM",
-      },
-      {
-        id: 3,
-        type: "bot",
-        content:
-          "I'd be happy to help you set up an automated email campaign! Let me guide you through the process. First, could you tell me about your target audience and the key messaging you want to include?",
-        timestamp: "9:32 AM",
       },
     ];
   };
@@ -228,7 +215,7 @@ export default function AiChat() {
 
       try {
         const res = await fetch(
-          "https://solaiservicesdemo.app.n8n.cloud/webhook/chat",
+          "https://solaiservicesdemo.app.n8n.cloud/webhook/assistant-pr-v2",
           {
             method: "POST",
             headers: {
@@ -238,6 +225,16 @@ export default function AiChat() {
             body: JSON.stringify({
               message: newMessage.content,
               sessionId: sessionId,
+              clientId: sessionId,
+              professionalMode: professionalMode,
+              voiceMode: isVoiceMode,
+              ...(uploadedFiles.length > 0 && { 
+                files: uploadedFiles.map(file => ({
+                  filename: file.name,
+                  size: file.size,
+                  type: file.type
+                }))
+              })
             }),
           },
         );
@@ -251,7 +248,7 @@ export default function AiChat() {
         const aiResponse = {
           id: newMessage.id + 1,
           type: "bot" as const,
-          content: data.reply || "No response from assistant.",
+          content: data.response || data.reply || "No response from assistant.",
           timestamp: new Date().toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
@@ -397,26 +394,51 @@ export default function AiChat() {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white">
-                  SOLAI AI Assistant
+                  AirWrecka AI Assistant
                 </h3>
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-white/70">Online</span>
+                  <span className="text-sm text-white/70">
+                    {professionalMode ? "Professional Mode" : "General Mode"}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Voice Mode Button */}
-            <button
-              onClick={() => setIsVoiceMode(!isVoiceMode)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                isVoiceMode
-                  ? "bg-solai-blue text-white shadow-lg"
-                  : "bg-white/10 text-white/80 hover:bg-white/20"
-              }`}
-            >
-              Voice Mode
-            </button>
+            {/* Mode Toggle Buttons */}
+            <div className="flex items-center space-x-3">
+              {/* Professional Mode Toggle */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-white/70">General</span>
+                <button
+                  onClick={() => setProfessionalMode(!professionalMode)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
+                    professionalMode 
+                      ? "bg-gradient-to-r from-solai-blue to-solai-blue-dark" 
+                      : "bg-white/20"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                      professionalMode ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+                <span className="text-sm text-white/70">Professional</span>
+              </div>
+
+              {/* Voice Mode Button */}
+              <button
+                onClick={() => setIsVoiceMode(!isVoiceMode)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isVoiceMode
+                    ? "bg-red-500 text-white shadow-lg"
+                    : "bg-white/10 text-white/80 hover:bg-white/20"
+                }`}
+              >
+                {isVoiceMode ? "🎤 Voice" : "💬 Text"}
+              </button>
+            </div>
           </div>
 
           {/* Messages Area */}
@@ -587,17 +609,55 @@ export default function AiChat() {
 
             {/* Quick Actions */}
             <div className="flex flex-wrap gap-2 mt-4">
-              <button className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10">
-                <Sparkles className="w-3 h-3 inline mr-1" />
-                Generate Email Template
-              </button>
-              <button className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10">
-                <MessageCircle className="w-3 h-3 inline mr-1" />
-                Create Workflow
-              </button>
-              <button className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10">
-                📊 Analytics Report
-              </button>
+              {professionalMode ? (
+                <>
+                  <button 
+                    onClick={() => setMessage("Find luxury properties in Coronado under $4M")}
+                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  >
+                    🏠 Search Properties
+                  </button>
+                  <button 
+                    onClick={() => setMessage("Score this lead: high budget, immediate timeline, luxury interest")}
+                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  >
+                    🎯 Score Lead
+                  </button>
+                  <button 
+                    onClick={() => setMessage("Generate market analysis for Coronado real estate")}
+                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  >
+                    📊 Market Analysis
+                  </button>
+                  <button 
+                    onClick={() => setMessage("Schedule appointment for property viewing")}
+                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  >
+                    📅 Schedule Appointment
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => setMessage("How's the weather today?")}
+                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  >
+                    ☀️ Weather
+                  </button>
+                  <button 
+                    onClick={() => setMessage("Tell me a joke")}
+                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  >
+                    😄 Tell a Joke
+                  </button>
+                  <button 
+                    onClick={() => setMessage("What's interesting in the news?")}
+                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  >
+                    📰 News
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
