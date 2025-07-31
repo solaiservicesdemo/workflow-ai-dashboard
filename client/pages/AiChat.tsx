@@ -615,7 +615,7 @@ export default function AiChat() {
                     onClick={() => setMessage("Find luxury properties in Coronado under $4M")}
                     className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
                   >
-                    🏠 Search Database
+                    🗄️ Search Database
                   </button>
                   <button 
                     onClick={() => setMessage("Score this lead: high budget, immediate timeline, luxury interest")}
@@ -627,13 +627,13 @@ export default function AiChat() {
                     onClick={() => setMessage("Generate market analysis for Coronado real estate")}
                     className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
                   >
-                    🎯 Send an Email
+                    📧 Send an Email
                   </button>
                   <button 
                     onClick={() => setMessage("Schedule appointment for property viewing")}
                     className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
                   >
-                    📊Web Search
+                    🔍 Web Search
                   </button>
                 </>
               ) : (
@@ -642,7 +642,7 @@ export default function AiChat() {
                     onClick={() => setMessage("How's the weather today?")}
                     className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
                   >
-                    ☀️ Weather
+                    ��️ Weather
                   </button>
                   <button 
                     onClick={() => setMessage("Tell me a joke")}
