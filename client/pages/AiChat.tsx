@@ -614,27 +614,55 @@ export default function AiChat() {
             <div className="flex flex-wrap gap-2 mt-4">
               {professionalMode ? (
                 <>
-                  <button 
-                    onClick={() => setMessage("Find luxury properties in Coronado under $4M")}
-                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  <button
+                    onClick={() => {
+                      setMessage("Find luxury properties in Coronado under $4M");
+                      setSelectedTool("database");
+                    }}
+                    className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
+                      selectedTool === "database"
+                        ? "bg-solai-blue/30 border-solai-blue text-white"
+                        : "bg-white/10 dark:bg-black/20 border-white/20 dark:border-white/10 text-white/80 hover:bg-white/20 dark:hover:bg-black/30"
+                    }`}
                   >
                     🗄️ Search Database
                   </button>
-                  <button 
-                    onClick={() => setMessage("Score this lead: high budget, immediate timeline, luxury interest")}
-                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  <button
+                    onClick={() => {
+                      setMessage("Check my calendar for available appointment slots");
+                      setSelectedTool("calendar");
+                    }}
+                    className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
+                      selectedTool === "calendar"
+                        ? "bg-solai-blue/30 border-solai-blue text-white"
+                        : "bg-white/10 dark:bg-black/20 border-white/20 dark:border-white/10 text-white/80 hover:bg-white/20 dark:hover:bg-black/30"
+                    }`}
                   >
                     📅 Calendar
                   </button>
-                  <button 
-                    onClick={() => setMessage("Generate market analysis for Coronado real estate")}
-                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  <button
+                    onClick={() => {
+                      setMessage("Compose an email to follow up with a lead");
+                      setSelectedTool("email");
+                    }}
+                    className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
+                      selectedTool === "email"
+                        ? "bg-solai-blue/30 border-solai-blue text-white"
+                        : "bg-white/10 dark:bg-black/20 border-white/20 dark:border-white/10 text-white/80 hover:bg-white/20 dark:hover:bg-black/30"
+                    }`}
                   >
                     📧 Send an Email
                   </button>
-                  <button 
-                    onClick={() => setMessage("Schedule appointment for property viewing")}
-                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  <button
+                    onClick={() => {
+                      setMessage("Search the web for current market trends");
+                      setSelectedTool("web");
+                    }}
+                    className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
+                      selectedTool === "web"
+                        ? "bg-solai-blue/30 border-solai-blue text-white"
+                        : "bg-white/10 dark:bg-black/20 border-white/20 dark:border-white/10 text-white/80 hover:bg-white/20 dark:hover:bg-black/30"
+                    }`}
                   >
                     🔍 Web Search
                   </button>
