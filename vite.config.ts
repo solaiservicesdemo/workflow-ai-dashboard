@@ -3,22 +3,26 @@ import path from "path";
 import { createServer } from "./server";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-  },
-  build: {
-    outDir: "dist/spa",
-  },
-  plugins: [react(), expressPlugin()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./client"),
-      "@shared": path.resolve(__dirname, "./shared"),
+export default defineConfig(async ({ mode }) => {
+  const { default: react } = await import("@vitejs/plugin-react-swc");
+
+  return {
+    server: {
+      host: "::",
+      port: 8080,
     },
-  },
-}));
+    build: {
+      outDir: "dist/spa",
+    },
+    plugins: [react(), expressPlugin()],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./client"),
+        "@shared": path.resolve(__dirname, "./shared"),
+      },
+    },
+  };
+});
 
 function expressPlugin(): Plugin {
   return {
