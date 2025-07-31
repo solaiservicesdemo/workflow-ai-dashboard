@@ -34,6 +34,7 @@ export default function AiChat() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDark, setIsDark] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
+  const [selectedTool, setSelectedTool] = useState<string>("general");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -212,6 +213,7 @@ export default function AiChat() {
       });
       setMessage("");
       setUploadedFiles([]);
+      setSelectedTool("general"); // Reset tool selection after sending
 
       try {
         const res = await fetch(
@@ -228,6 +230,7 @@ export default function AiChat() {
               clientId: sessionId,
               professionalMode: professionalMode,
               voiceMode: isVoiceMode,
+              selectedTool: selectedTool,
               ...(uploadedFiles.length > 0 && { 
                 files: uploadedFiles.map(file => ({
                   filename: file.name,
