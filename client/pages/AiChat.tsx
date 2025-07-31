@@ -554,9 +554,7 @@ export default function AiChat() {
                     : "text-white/70 hover:text-white"
                 }`}
                 title={isRecording ? "Stop recording" : "Start speech-to-text"}
-              >
-                <Mic className="w-5 h-5" />
-              </button>
+              />
               {/* File Upload Button */}
               <button
                 onClick={triggerFileUpload}
