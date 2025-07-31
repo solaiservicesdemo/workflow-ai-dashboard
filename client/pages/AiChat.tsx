@@ -529,7 +529,7 @@ export default function AiChat() {
               </div>
             )}
 
-            <div className="flex items-end space-x-3">
+            <div className="flex items-end space-x-1 sm:space-x-3">
               <div className="flex-1 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-white/10 focus-within:border-solai-blue/50 transition-colors">
                 <textarea
                   value={message}
