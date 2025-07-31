@@ -546,15 +546,7 @@ export default function AiChat() {
                   disabled={isVoiceMode}
                 />
               </div>
-              <button
-                onClick={handleSpeechToText}
-                className={`p-2 transition-colors ${
-                  isRecording
-                    ? "text-red-400 hover:text-red-300 animate-pulse"
-                    : "text-white/70 hover:text-white"
-                }`}
-                title={isRecording ? "Stop recording" : "Start speech-to-text"}
-              />
+
               {/* File Upload Button */}
               <button
                 onClick={triggerFileUpload}
