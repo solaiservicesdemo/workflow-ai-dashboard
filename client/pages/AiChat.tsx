@@ -615,25 +615,25 @@ export default function AiChat() {
                     onClick={() => setMessage("Find luxury properties in Coronado under $4M")}
                     className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
                   >
-                    🏠 Search Properties
+                    🏠 Search Database
                   </button>
                   <button 
                     onClick={() => setMessage("Score this lead: high budget, immediate timeline, luxury interest")}
                     className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
                   >
-                    🎯 Score Lead
+                    📅 Calendar
                   </button>
                   <button 
                     onClick={() => setMessage("Generate market analysis for Coronado real estate")}
                     className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
                   >
-                    📊 Market Analysis
+                    🎯 Send an Email
                   </button>
                   <button 
                     onClick={() => setMessage("Schedule appointment for property viewing")}
                     className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
                   >
-                    📅 Schedule Appointment
+                    📊Web Search
                   </button>
                 </>
               ) : (
