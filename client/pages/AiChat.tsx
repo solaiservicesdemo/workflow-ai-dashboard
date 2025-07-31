@@ -618,8 +618,7 @@ export default function AiChat() {
                 <>
                   <button
                     onClick={() => {
-                      setMessage("Find luxury properties in Coronado under $4M");
-                      setSelectedTool("database");
+                      setSelectedTool(selectedTool === "database" ? "general" : "database");
                     }}
                     className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
                       selectedTool === "database"
@@ -631,8 +630,7 @@ export default function AiChat() {
                   </button>
                   <button
                     onClick={() => {
-                      setMessage("Check my calendar for available appointment slots");
-                      setSelectedTool("calendar");
+                      setSelectedTool(selectedTool === "calendar" ? "general" : "calendar");
                     }}
                     className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
                       selectedTool === "calendar"
@@ -644,8 +642,7 @@ export default function AiChat() {
                   </button>
                   <button
                     onClick={() => {
-                      setMessage("Compose an email to follow up with a lead");
-                      setSelectedTool("email");
+                      setSelectedTool(selectedTool === "email" ? "general" : "email");
                     }}
                     className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
                       selectedTool === "email"
@@ -657,8 +654,7 @@ export default function AiChat() {
                   </button>
                   <button
                     onClick={() => {
-                      setMessage("Search the web for current market trends");
-                      setSelectedTool("web");
+                      setSelectedTool(selectedTool === "web" ? "general" : "web");
                     }}
                     className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
                       selectedTool === "web"
