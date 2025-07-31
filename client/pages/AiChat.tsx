@@ -610,6 +610,23 @@ export default function AiChat() {
               )}
             </div>
 
+            {/* Selected Tool Indicator */}
+            {selectedTool !== "general" && (
+              <div className="flex items-center justify-between bg-solai-blue/20 border border-solai-blue/30 rounded-lg px-3 py-2 mt-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-white/90">Tool selected:</span>
+                  <span className="text-xs font-medium text-white capitalize">{selectedTool}</span>
+                </div>
+                <button
+                  onClick={() => setSelectedTool("general")}
+                  className="text-white/60 hover:text-white transition-colors"
+                  title="Clear tool selection"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+
             {/* Quick Actions */}
             <div className="flex flex-wrap gap-2 mt-4">
               {professionalMode ? (
