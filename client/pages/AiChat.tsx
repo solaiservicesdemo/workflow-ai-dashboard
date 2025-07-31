@@ -411,24 +411,7 @@ export default function AiChat() {
             {/* Mode Toggle Buttons */}
             <div className="flex items-center space-x-3">
               {/* Professional Mode Toggle */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-white/70">General</span>
-                <button
-                  onClick={() => setProfessionalMode(!professionalMode)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
-                    professionalMode 
-                      ? "bg-gradient-to-r from-solai-blue to-solai-blue-dark" 
-                      : "bg-white/20"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                      professionalMode ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-                <span className="text-sm text-white/70">Professional</span>
-              </div>
+              <div className="flex items-center space-x-2" />
 
               {/* Voice Mode Button */}
               <button
