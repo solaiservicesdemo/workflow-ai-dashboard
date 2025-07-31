@@ -34,6 +34,7 @@ export default function AiChat() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isDark, setIsDark] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
+  const [selectedTool, setSelectedTool] = useState<string>("general");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -212,6 +213,7 @@ export default function AiChat() {
       });
       setMessage("");
       setUploadedFiles([]);
+      setSelectedTool("general"); // Reset tool selection after sending
 
       try {
         const res = await fetch(
@@ -228,6 +230,7 @@ export default function AiChat() {
               clientId: sessionId,
               professionalMode: professionalMode,
               voiceMode: isVoiceMode,
+              selectedTool: selectedTool,
               ...(uploadedFiles.length > 0 && { 
                 files: uploadedFiles.map(file => ({
                   filename: file.name,
@@ -607,33 +610,59 @@ export default function AiChat() {
               )}
             </div>
 
+
+
             {/* Quick Actions */}
             <div className="flex flex-wrap gap-2 mt-4">
               {professionalMode ? (
                 <>
-                  <button 
-                    onClick={() => setMessage("Find luxury properties in Coronado under $4M")}
-                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  <button
+                    onClick={() => {
+                      setSelectedTool(selectedTool === "database" ? "general" : "database");
+                    }}
+                    className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
+                      selectedTool === "database"
+                        ? "bg-solai-blue/30 border-solai-blue text-white"
+                        : "bg-white/10 dark:bg-black/20 border-white/20 dark:border-white/10 text-white/80 hover:bg-white/20 dark:hover:bg-black/30"
+                    }`}
                   >
-                    🏠 Search Properties
+                    🗄️ Search Database
                   </button>
-                  <button 
-                    onClick={() => setMessage("Score this lead: high budget, immediate timeline, luxury interest")}
-                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  <button
+                    onClick={() => {
+                      setSelectedTool(selectedTool === "calendar" ? "general" : "calendar");
+                    }}
+                    className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
+                      selectedTool === "calendar"
+                        ? "bg-solai-blue/30 border-solai-blue text-white"
+                        : "bg-white/10 dark:bg-black/20 border-white/20 dark:border-white/10 text-white/80 hover:bg-white/20 dark:hover:bg-black/30"
+                    }`}
                   >
-                    🎯 Score Lead
+                    📅 Calendar
                   </button>
-                  <button 
-                    onClick={() => setMessage("Generate market analysis for Coronado real estate")}
-                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  <button
+                    onClick={() => {
+                      setSelectedTool(selectedTool === "email" ? "general" : "email");
+                    }}
+                    className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
+                      selectedTool === "email"
+                        ? "bg-solai-blue/30 border-solai-blue text-white"
+                        : "bg-white/10 dark:bg-black/20 border-white/20 dark:border-white/10 text-white/80 hover:bg-white/20 dark:hover:bg-black/30"
+                    }`}
                   >
-                    📊 Market Analysis
+                    📧 Send an Email
                   </button>
-                  <button 
-                    onClick={() => setMessage("Schedule appointment for property viewing")}
-                    className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
+                  <button
+                    onClick={() => {
+                      setSelectedTool(selectedTool === "web" ? "general" : "web");
+                    }}
+                    className={`px-3 py-1.5 backdrop-blur-sm rounded-full text-xs transition-colors border ${
+                      selectedTool === "web"
+                        ? "bg-solai-blue/30 border-solai-blue text-white"
+                        : "bg-white/10 dark:bg-black/20 border-white/20 dark:border-white/10 text-white/80 hover:bg-white/20 dark:hover:bg-black/30"
+                    }`}
                   >
-                    📅 Schedule Appointment
+                    🔍 Web Search
                   </button>
                 </>
               ) : (
@@ -642,7 +671,7 @@ export default function AiChat() {
                     onClick={() => setMessage("How's the weather today?")}
                     className="px-3 py-1.5 bg-white/10 dark:bg-black/20 backdrop-blur-sm rounded-full text-xs text-white/80 hover:bg-white/20 dark:hover:bg-black/30 transition-colors border border-white/20 dark:border-white/10"
                   >
-                    ☀️ Weather
+                    ��️ Weather
                   </button>
                   <button 
                     onClick={() => setMessage("Tell me a joke")}
