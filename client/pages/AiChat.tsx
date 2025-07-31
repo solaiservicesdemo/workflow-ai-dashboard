@@ -499,7 +499,7 @@ export default function AiChat() {
           </div>
 
           {/* Input Area */}
-          <div className="p-6 border-t border-white/20 dark:border-white/5">
+          <div className="p-6 sm:p-6 p-3 border-t border-white/20 dark:border-white/5">
             {/* Uploaded Files Preview */}
             {uploadedFiles.length > 0 && (
               <div className="mb-4 space-y-2">
