@@ -567,19 +567,41 @@ export default function AiChat() {
 
               {isVoiceMode ? (
                 <button
-                  className="w-11 h-11 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg"
-                  title="Start voice recording"
+                  onClick={handleSpeechToText}
+                  className={`w-11 h-11 rounded-full flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg ${
+                    isRecording
+                      ? "bg-gradient-to-br from-red-600 to-red-700 animate-pulse"
+                      : "bg-gradient-to-br from-red-500 to-red-600"
+                  }`}
+                  title={isRecording ? "Stop recording" : "Start voice recording"}
                 >
                   <Mic className="w-5 h-5 text-white" />
                 </button>
               ) : (
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!message.trim() && uploadedFiles.length === 0}
-                  className="w-11 h-11 bg-gradient-to-br from-solai-blue to-solai-blue-dark rounded-full flex items-center justify-center hover:scale-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  <Send className="w-5 h-5 text-white" />
-                </button>
+                <>
+                  {/* Speech-to-text button for non-voice mode */}
+                  <button
+                    onClick={handleSpeechToText}
+                    className={`w-11 h-11 rounded-full flex items-center justify-center hover:scale-110 transition-all duration-200 border border-white/20 dark:border-white/10 ${
+                      isRecording
+                        ? "bg-gradient-to-br from-red-500 to-red-600 animate-pulse"
+                        : "bg-white/10 dark:bg-black/20 hover:bg-white/20 dark:hover:bg-black/30"
+                    }`}
+                    title={isRecording ? "Stop recording" : "Start speech-to-text"}
+                  >
+                    <Mic className={`w-5 h-5 ${
+                      isRecording ? "text-white" : "text-white/70"
+                    }`} />
+                  </button>
+
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={!message.trim() && uploadedFiles.length === 0}
+                    className="w-11 h-11 bg-gradient-to-br from-solai-blue to-solai-blue-dark rounded-full flex items-center justify-center hover:scale-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  >
+                    <Send className="w-5 h-5 text-white" />
+                  </button>
+                </>
               )}
             </div>
 
