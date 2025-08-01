@@ -897,19 +897,7 @@ export default function Index() {
                   className="flex-1 bg-transparent text-white placeholder-white/50 px-6 py-4 rounded-2xl focus:outline-none text-base"
                   disabled={isVoiceMode}
                 />
-                <button
-                  onClick={handleSpeechToText}
-                  className={`p-2 transition-colors ${
-                    isRecording
-                      ? "text-red-400 hover:text-red-300 animate-pulse"
-                      : "text-white/70 hover:text-white"
-                  }`}
-                  title={
-                    isRecording ? "Stop recording" : "Start speech-to-text"
-                  }
-                >
-                  <Mic className="w-5 h-5" />
-                </button>
+
                 <button
                   className="p-2 text-white/70 hover:text-white transition-colors"
                   title="Attach file"
