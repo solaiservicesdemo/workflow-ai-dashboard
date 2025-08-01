@@ -312,51 +312,95 @@ export default function Index() {
     }
   };
 
-  const handleSpeechToText = () => {
+  const handleSpeechToText = async () => {
+    // Check if speech recognition is supported
     if (
       !("webkitSpeechRecognition" in window) &&
       !("SpeechRecognition" in window)
     ) {
-      alert("Speech recognition not supported in this browser");
+      alert("Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
       return;
     }
 
+    // Check if HTTPS is being used (required for speech recognition)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      alert("Speech recognition requires HTTPS. Please use a secure connection.");
+      return;
+    }
+
+    // If already recording, stop
     if (isRecording) {
       setIsRecording(false);
       return;
     }
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    try {
+      // Request microphone permission
+      const permission = await navigator.mediaDevices.getUserMedia({ audio: true });
+      permission.getTracks().forEach(track => track.stop()); // Stop the stream, we just needed permission
 
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
 
-    setIsRecording(true);
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = "en-US";
+      recognition.maxAlternatives = 1;
 
-    recognition.onstart = () => {
-      console.log("Speech recognition started");
-    };
+      setIsRecording(true);
 
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setInputMessage((prev) => prev + (prev ? " " : "") + transcript);
+      recognition.onstart = () => {
+        console.log("Speech recognition started");
+      };
+
+      recognition.onresult = (event: any) => {
+        try {
+          const transcript = event.results[0][0].transcript;
+          setInputMessage((prev) => prev + (prev ? " " : "") + transcript);
+        } catch (error) {
+          console.error("Error processing speech result:", error);
+          alert("Error processing speech. Please try again.");
+        }
+        setIsRecording(false);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error);
+        setIsRecording(false);
+
+        let errorMessage = "Speech recognition failed. Please try again.";
+        switch (event.error) {
+          case 'network':
+            errorMessage = "Network error. Please check your internet connection and try again.";
+            break;
+          case 'not-allowed':
+            errorMessage = "Microphone access denied. Please allow microphone access and try again.";
+            break;
+          case 'no-speech':
+            errorMessage = "No speech detected. Please try speaking again.";
+            break;
+          case 'audio-capture':
+            errorMessage = "No microphone found. Please connect a microphone and try again.";
+            break;
+          case 'service-not-allowed':
+            errorMessage = "Speech recognition service not allowed. Please check your browser settings.";
+            break;
+        }
+        alert(errorMessage);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognition.start();
+    } catch (error) {
+      console.error("Microphone permission error:", error);
       setIsRecording(false);
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error("Speech recognition error:", event.error);
-      setIsRecording(false);
-    };
-
-    recognition.onend = () => {
-      setIsRecording(false);
-    };
-
-    recognition.start();
+      alert("Microphone access denied. Please allow microphone access and try again.");
+    }
   };
 
   const goToFullScreenChat = () => {
@@ -897,19 +941,7 @@ export default function Index() {
                   className="flex-1 bg-transparent text-white placeholder-white/50 px-6 py-4 rounded-2xl focus:outline-none text-base"
                   disabled={isVoiceMode}
                 />
-                <button
-                  onClick={handleSpeechToText}
-                  className={`p-2 transition-colors ${
-                    isRecording
-                      ? "text-red-400 hover:text-red-300 animate-pulse"
-                      : "text-white/70 hover:text-white"
-                  }`}
-                  title={
-                    isRecording ? "Stop recording" : "Start speech-to-text"
-                  }
-                >
-                  <Mic className="w-5 h-5" />
-                </button>
+
                 <button
                   className="p-2 text-white/70 hover:text-white transition-colors"
                   title="Attach file"
@@ -921,8 +953,13 @@ export default function Index() {
 
             {isVoiceMode ? (
               <button
-                className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg"
-                title="Start voice recording"
+                onClick={handleSpeechToText}
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg ${
+                  isRecording
+                    ? "bg-gradient-to-br from-red-600 to-red-700 animate-pulse"
+                    : "bg-gradient-to-br from-red-500 to-red-600"
+                }`}
+                title={isRecording ? "Stop recording" : "Start voice recording"}
               >
                 <Mic className="w-5 h-5 text-white" />
               </button>

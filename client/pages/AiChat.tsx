@@ -312,46 +312,99 @@ export default function AiChat() {
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
 
-  function handleSpeechToText(
+  async function handleSpeechToText(
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ): void {
+  ): Promise<void> {
+    // Check if speech recognition is supported
     if (
       !("webkitSpeechRecognition" in window || "SpeechRecognition" in window)
     ) {
-      alert("Speech recognition is not supported in this browser.");
+      alert("Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
       return;
     }
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
-    if (!recognitionRef.current) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = "en-US";
-
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setMessage((prev) => (prev ? prev + " " + transcript : transcript));
-        setIsRecording(false);
-      };
-
-      recognitionRef.current.onerror = () => {
-        setIsRecording(false);
-      };
-
-      recognitionRef.current.onend = () => {
-        setIsRecording(false);
-      };
+    // Check if HTTPS is being used (required for speech recognition)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      alert("Speech recognition requires HTTPS. Please use a secure connection.");
+      return;
     }
 
+    // If already recording, stop
     if (isRecording) {
-      recognitionRef.current.stop();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
       setIsRecording(false);
-    } else {
-      recognitionRef.current.start();
+      return;
+    }
+
+    try {
+      // Request microphone permission
+      const permission = await navigator.mediaDevices.getUserMedia({ audio: true });
+      permission.getTracks().forEach(track => track.stop()); // Stop the stream, we just needed permission
+
+      const SpeechRecognition =
+        (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition;
+
+      if (!recognitionRef.current) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = "en-US";
+        recognitionRef.current.maxAlternatives = 1;
+
+        recognitionRef.current.onstart = () => {
+          console.log("Speech recognition started");
+        };
+
+        recognitionRef.current.onresult = (event: any) => {
+          try {
+            const transcript = event.results[0][0].transcript;
+            setMessage((prev) => (prev ? prev + " " + transcript : transcript));
+          } catch (error) {
+            console.error("Error processing speech result:", error);
+            alert("Error processing speech. Please try again.");
+          }
+          setIsRecording(false);
+        };
+
+        recognitionRef.current.onerror = (event: any) => {
+          console.error("Speech recognition error:", event.error);
+          setIsRecording(false);
+
+          let errorMessage = "Speech recognition failed. Please try again.";
+          switch (event.error) {
+            case 'network':
+              errorMessage = "Network error. Please check your internet connection and try again.";
+              break;
+            case 'not-allowed':
+              errorMessage = "Microphone access denied. Please allow microphone access and try again.";
+              break;
+            case 'no-speech':
+              errorMessage = "No speech detected. Please try speaking again.";
+              break;
+            case 'audio-capture':
+              errorMessage = "No microphone found. Please connect a microphone and try again.";
+              break;
+            case 'service-not-allowed':
+              errorMessage = "Speech recognition service not allowed. Please check your browser settings.";
+              break;
+          }
+          alert(errorMessage);
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsRecording(false);
+        };
+      }
+
       setIsRecording(true);
+      recognitionRef.current.start();
+    } catch (error) {
+      console.error("Microphone permission error:", error);
+      setIsRecording(false);
+      alert("Microphone access denied. Please allow microphone access and try again.");
     }
   }
   return (
@@ -567,8 +620,13 @@ export default function AiChat() {
 
               {isVoiceMode ? (
                 <button
-                  className="w-11 h-11 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg"
-                  title="Start voice recording"
+                  onClick={handleSpeechToText}
+                  className={`w-11 h-11 rounded-full flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg ${
+                    isRecording
+                      ? "bg-gradient-to-br from-red-600 to-red-700 animate-pulse"
+                      : "bg-gradient-to-br from-red-500 to-red-600"
+                  }`}
+                  title={isRecording ? "Stop recording" : "Start voice recording"}
                 >
                   <Mic className="w-5 h-5 text-white" />
                 </button>
