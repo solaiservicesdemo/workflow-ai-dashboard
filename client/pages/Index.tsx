@@ -921,8 +921,13 @@ export default function Index() {
 
             {isVoiceMode ? (
               <button
-                className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg"
-                title="Start voice recording"
+                onClick={handleSpeechToText}
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg ${
+                  isRecording
+                    ? "bg-gradient-to-br from-red-600 to-red-700 animate-pulse"
+                    : "bg-gradient-to-br from-red-500 to-red-600"
+                }`}
+                title={isRecording ? "Stop recording" : "Start voice recording"}
               >
                 <Mic className="w-5 h-5 text-white" />
               </button>
