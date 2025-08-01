@@ -69,22 +69,8 @@ export default function Index() {
         id: 1,
         type: "bot" as const,
         content:
-          "Hello! I'm your AI Assistant. How can I help you with your business processes today?",
-        timestamp: "Just now",
-      },
-      {
-        id: 2,
-        type: "user" as const,
-        content:
-          "I need help setting up an automated workflow for our business.",
-        timestamp: "2 mins ago",
-      },
-      {
-        id: 3,
-        type: "bot" as const,
-        content:
-          "I'd be happy to help you set up an automated workflow! What type of business process are you looking to automate? For example, email campaigns, task management, or data processing?",
-        timestamp: "1 min ago",
+          "Hello! I'm AirWrecka, your AI real estate assistant. I can help you with property searches, lead qualification, market analysis, and more. How can I assist you today?",
+        timestamp: "9:30 AM",
       },
     ];
   };

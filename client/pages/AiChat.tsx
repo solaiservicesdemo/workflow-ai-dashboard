@@ -411,24 +411,7 @@ export default function AiChat() {
             {/* Mode Toggle Buttons */}
             <div className="flex items-center space-x-3">
               {/* Professional Mode Toggle */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-white/70">General</span>
-                <button
-                  onClick={() => setProfessionalMode(!professionalMode)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
-                    professionalMode 
-                      ? "bg-gradient-to-r from-solai-blue to-solai-blue-dark" 
-                      : "bg-white/20"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                      professionalMode ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-                <span className="text-sm text-white/70">Professional</span>
-              </div>
+              <div className="flex items-center space-x-2" />
 
               {/* Voice Mode Button */}
               <button
@@ -516,7 +499,7 @@ export default function AiChat() {
           </div>
 
           {/* Input Area */}
-          <div className="p-6 border-t border-white/20 dark:border-white/5">
+          <div className="p-6 sm:p-6 p-3 border-t border-white/20 dark:border-white/5">
             {/* Uploaded Files Preview */}
             {uploadedFiles.length > 0 && (
               <div className="mb-4 space-y-2">
@@ -546,7 +529,7 @@ export default function AiChat() {
               </div>
             )}
 
-            <div className="flex items-end space-x-3">
+            <div className="flex items-end space-x-1 sm:space-x-3">
               <div className="flex-1 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-white/10 focus-within:border-solai-blue/50 transition-colors">
                 <textarea
                   value={message}
@@ -563,17 +546,7 @@ export default function AiChat() {
                   disabled={isVoiceMode}
                 />
               </div>
-              <button
-                onClick={handleSpeechToText}
-                className={`p-2 transition-colors ${
-                  isRecording
-                    ? "text-red-400 hover:text-red-300 animate-pulse"
-                    : "text-white/70 hover:text-white"
-                }`}
-                title={isRecording ? "Stop recording" : "Start speech-to-text"}
-              >
-                <Mic className="w-5 h-5" />
-              </button>
+
               {/* File Upload Button */}
               <button
                 onClick={triggerFileUpload}
